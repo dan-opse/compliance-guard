@@ -1,8 +1,46 @@
 @import "tailwindcss";
 
+/* IBM Design Language Color Palette */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary Blues (IBM Core) */
+  --ibm-blue-100: #edf5ff;
+  --ibm-blue-90: #d0e2ff;
+  --ibm-blue-80: #a6c8ff;
+  --ibm-blue-70: #78a9ff;
+  --ibm-blue-60: #4589ff;
+  --ibm-blue-50: #0f62fe;
+  --ibm-blue-40: #0043ce;
+  --ibm-blue-30: #002d9c;
+  --ibm-blue-20: #001d6c;
+  --ibm-blue-10: #001141;
+
+  /* Neutral Grays */
+  --ibm-gray-100: #f4f4f4;
+  --ibm-gray-90: #e0e0e0;
+  --ibm-gray-80: #c6c6c6;
+  --ibm-gray-70: #a8a8a8;
+  --ibm-gray-60: #8d8d8d;
+  --ibm-gray-50: #6f6f6f;
+  --ibm-gray-40: #525252;
+  --ibm-gray-30: #393939;
+  --ibm-gray-20: #262626;
+  --ibm-gray-10: #161616;
+
+  /* Alert/Error Colors */
+  --ibm-red-100: #fff1f1;
+  --ibm-red-90: #ffd7d9;
+  --ibm-red-80: #ffb3b8;
+  --ibm-red-70: #ff8389;
+  --ibm-red-60: #fa4d56;
+  --ibm-red-50: #da1e28;
+  --ibm-red-40: #a2191f;
+  --ibm-red-30: #750e13;
+  --ibm-red-20: #520408;
+  --ibm-red-10: #2d0709;
+
+  /* Dark theme */
+  --background: #161616;
+  --foreground: #f4f4f4;
 }
 
 @theme inline {
@@ -14,8 +52,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #161616;
+    --foreground: #f4f4f4;
   }
 }
 
@@ -23,4 +61,41 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Utility Classes - IBM Design Language */
+.card {
+  @apply bg-[#262626] rounded-lg p-6 border border-[#393939];
+}
+
+.card-content {
+  @apply bg-[#161616] rounded p-4 text-sm text-[#c6c6c6] max-h-64 overflow-y-auto;
+}
+
+.btn-primary {
+  @apply bg-[#0f62fe] hover:bg-[#0043ce] text-white font-semibold py-2 px-4 rounded-lg transition disabled:bg-[#525252] disabled:text-[#8d8d8d] disabled:cursor-not-allowed;
+}
+
+.tab-button {
+  @apply flex-1 px-4 py-3 font-semibold transition;
+}
+
+.tab-active {
+  @apply bg-[#0f62fe] text-white border-b-2 border-[#0f62fe];
+}
+
+.tab-inactive {
+  @apply text-[#a8a8a8] hover:text-[#c6c6c6] border-b-2 border-transparent;
+}
+
+.violation-box {
+  @apply bg-[#a2191f]/20 border border-[#da1e28] rounded-lg p-4;
+}
+
+.violation-icon {
+  @apply bg-[#da1e28] text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 text-xs font-bold;
+}
+
+.drop-zone {
+  @apply border-2 border-dashed border-[#525252] rounded-lg p-6 text-center hover:border-[#0f62fe] transition-colors cursor-pointer;
 }
