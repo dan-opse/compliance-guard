@@ -19,16 +19,65 @@ export default function Home() {
   const [contractText, setContractText] = useState("");
   const [flaggedClauses, setFlaggedClauses] = useState<FlaggedClause[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoadingFile, setIsLoadingFile] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"upload" | "results">("upload");
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setContractText(event.target?.result as string);
-      };
-      reader.readAsText(file);
+      setIsLoadingFile(true);
+      setLoadingError(null);
+      
+      const timeoutId = setTimeout(() => {
+        setIsLoadingFile(false);
+        setLoadingError("File processing timed out. Please try a smaller file.");
+      }, 30000);
+
+      try {
+        let text = "";
+
+        if (file.type === "application/pdf") {
+          // Send to server for PDF parsing
+          const formData = new FormData();
+          formData.append("file", file);
+
+          const response = await fetch("/api/parse-pdf", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to parse PDF");
+          }
+
+          const data = await response.json();
+          text = data.text;
+        } else {
+          // Read as plain text
+          const reader = new FileReader();
+          text = await new Promise((resolve, reject) => {
+            reader.onload = (event) => {
+              resolve(event.target?.result as string);
+            };
+            reader.onerror = () => {
+              reject(new Error("Failed to read file"));
+            };
+            reader.readAsText(file);
+          });
+        }
+
+        clearTimeout(timeoutId);
+        setContractText(text);
+        setIsLoadingFile(false);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        console.error("Error reading file:", error);
+        setLoadingError(
+          error instanceof Error ? error.message : "Error reading file. Please try a valid PDF or text file."
+        );
+        setIsLoadingFile(false);
+      }
     }
   };
 
@@ -39,24 +88,31 @@ export default function Home() {
     }
 
     setIsAnalyzing(true);
-    // TODO: Call backend API to analyze contract
-    // For now, showing mock data
-    setTimeout(() => {
-      setFlaggedClauses([
-        {
-          text: 'The vendor may terminate this agreement with 30 days notice.',
-          policyNumber: "POL-001",
-          violation: "Policy requires minimum 90 days termination notice"
+    try {
+      const response = await fetch("/api/analyze-contract", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          text: 'All data shall be processed in any jurisdiction as determined by vendor.',
-          policyNumber: "POL-015",
-          violation: "Policy mandates data processing only in approved US regions"
-        }
-      ]);
+        body: JSON.stringify({
+          contractText,
+          policies: POLICIES,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to analyze contract");
+      }
+
+      const data = await response.json();
+      setFlaggedClauses(data.flaggedClauses || []);
       setActiveTab("results");
+    } catch (error) {
+      console.error("Error analyzing contract:", error);
+      alert("Error analyzing contract. Please try again.");
+    } finally {
       setIsAnalyzing(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -84,17 +140,31 @@ export default function Home() {
               <div className="card">
                 <h2 className="text-lg font-semibold mb-4" style={{ color: '#f4f4f4' }}>Upload Contract</h2>
                 <div className="space-y-4">
+                  {loadingError && (
+                    <div className="bg-[#a2191f]/20 border border-[#da1e28] rounded-lg p-3 flex items-start gap-2">
+                      <div className="text-[#da1e28] font-bold flex-shrink-0">!</div>
+                      <p className="text-sm" style={{ color: '#ffb3b8' }}>{loadingError}</p>
+                    </div>
+                  )}
+                  {isLoadingFile && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin w-4 h-4 border-2 border-[#0f62fe] border-t-transparent rounded-full"></div>
+                        <p className="text-sm" style={{ color: '#a8a8a8' }}>Processing file...</p>
+                      </div>
+                      <div className="w-full bg-[#393939] rounded-full h-1 overflow-hidden">
+                        <div className="h-full bg-[#0f62fe] animate-pulse" style={{ width: '100%' }}></div>
+                      </div>
+                    </div>
+                  )}
                   <div 
                     className="drop-zone"
                     onDrop={(e) => {
                       e.preventDefault();
                       const file = e.dataTransfer.files?.[0];
                       if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          setContractText(event.target?.result as string);
-                        };
-                        reader.readAsText(file);
+                        const event = { target: { files: e.dataTransfer.files } } as any;
+                        handleFileUpload(event);
                       }
                     }}
                     onDragOver={(e) => e.preventDefault()}
@@ -108,9 +178,17 @@ export default function Home() {
                     />
                     <label htmlFor="file-upload" className="block cursor-pointer">
                       <p className="text-sm" style={{ color: '#a8a8a8' }}>Drag and drop your contract here</p>
-                      <p className="text-xs mt-2" style={{ color: '#8d8d8d' }}>or click to browse (PDF, TXT, DOCX)</p>
+                      <p className="text-xs mt-2" style={{ color: '#8d8d8d' }}>or click to browse (TXT files recommended)</p>
                     </label>
                   </div>
+                  <div className="text-center text-xs" style={{ color: '#6f6f6f' }}>OR</div>
+                  <textarea
+                    placeholder="Paste your contract text here..."
+                    value={contractText}
+                    onChange={(e) => setContractText(e.target.value)}
+                    className="w-full h-32 p-3 rounded-lg bg-[#161616] border border-[#525252] focus:border-[#0f62fe] focus:outline-none text-sm font-mono resize-none"
+                    style={{ color: '#c6c6c6' }}
+                  />
                   <button
                     onClick={handleAnalyze}
                     disabled={!contractText.trim() || isAnalyzing}
