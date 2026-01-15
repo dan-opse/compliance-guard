@@ -28,16 +28,24 @@ ollama serve
 
 Keep this terminal window open—Ollama must be running in the background.
 
-### 3. Pull the Granite Model
+### 3. Pull IBM Granite Model
 
-In a new terminal, pull the Granite 2 model:
+**Recommended (best for contract analysis):**
 ```bash
-ollama pull granite2
+ollama pull granite3.1-dense:8b
 ```
 
-Or for Granite 3 (larger, better quality):
+**Other Granite options:**
 ```bash
-ollama pull granite2:8b
+ollama pull granite4              # Latest version, better instruction following
+ollama pull granite3.2            # Balanced, good for general tasks
+ollama pull granite3.1-moe        # Mixture of Experts, efficient
+```
+
+**Alternative if you prefer (non-Granite):**
+```bash
+ollama pull mistral               # Fast alternative
+ollama pull llama2                # Larger, higher quality
 ```
 
 First pull will take a few minutes depending on your internet.
@@ -73,21 +81,27 @@ export OLLAMA_API_URL=http://your-server:11434
 
 To use a different model:
 ```bash
-export OLLAMA_MODEL=granite2:8b
+export OLLAMA_MODEL=llama2
 ```
 
 Or set in `.env.local`:
 ```
 OLLAMA_API_URL=http://localhost:11434
-OLLAMA_MODEL=granite2
+OLLAMA_MODEL=granite3.1-dense:8b
 ```
 
 ## Available Models
 
-- `granite2` (lightweight, ~5GB)
-- `granite2:8b` (better quality, ~8GB)
-- `llama2` (alternative, ~4GB)
-- `mistral` (fast alternative, ~4GB)
+**IBM Granite (Recommended):**
+- `granite4` (latest, improved instruction following, ~10GB)
+- `granite3.1-dense:8b` (optimized for contracts, ~5GB) **← BEST FOR THIS PROJECT**
+- `granite3.2` (balanced, ~8GB)
+- `granite3.1-moe` (efficient mixture of experts, ~3GB)
+
+**Open-source alternatives:**
+- `mistral` (fast, high quality, ~5GB)
+- `llama2` (balanced, ~4GB)
+- `neural-chat` (conversation optimized, ~5GB)
 
 ## Troubleshooting
 
@@ -107,7 +121,22 @@ OLLAMA_MODEL=granite2
 
 ## Next Steps
 
-1. Start Ollama: `ollama serve`
-2. Pull model: `ollama pull granite2`
-3. Run app: `npm run dev`
+1. **Make sure Ollama is running**: Open a terminal and run:
+   ```bash
+   ollama serve
+   ```
+   Keep this window open.
+
+2. **Pull a Granite model** (in a new terminal):
+   ```bash
+   ollama pull granite3.1-dense:8b
+   ```
+   Or try `granite4` for the latest version.
+
+3. **Run the app** (in another terminal):
+   ```bash
+   cd /Users/danielcheah/LocalDocuments/Projects/compliance-guard
+   npm run dev
+   ```
+
 4. Visit http://localhost:3000 and test!
