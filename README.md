@@ -1,5 +1,7 @@
 # ComplianceGuard
 
+[Checkout the website here! (click me)](https://compliance-guard-81f2i7mx7-dan-opses-projects.vercel.app)
+
 An intelligent contract compliance analyzer powered by IBM Granite AI that helps companies quickly identify policy violations in contracts.
 
 ## Features
